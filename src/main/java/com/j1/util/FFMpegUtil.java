@@ -136,43 +136,41 @@ public class FFMpegUtil {
 	 * @param out_path
 	 * @return
 	 */
-	public synchronized static boolean processFLV(String path, String out_path) {
+	public synchronized static void processFLV(String path, String out_path) {
 		List<String> commend = new ArrayList<String>();
 		commend.add(FFMPEG);
-		commend.add("-y");
-		commend.add("-i");
-		commend.add(path);
-		commend.add("-ab");
-		commend.add("56");
-		commend.add("-ar");
+		commend.add("-y");//覆盖已存在的文件
+		commend.add("-i");//获得源文件物理信息
+		commend.add(path);//源文件路径
+		commend.add("-ab");//<比特率> 设定声音比特率
+		commend.add("80");
+		commend.add("-ar");//<采样率> 设定声音采样率
 		commend.add("22050");
 
 		commend.add(out_path);
 		
+		CmdExecuter.exec(commend, new FFMpegUtil(FFMPEG,path));
 		
-		try {
+		/*try {
 			//预处理进程
 			ProcessBuilder builder = new ProcessBuilder();
 			builder.command(commend);
 			builder.redirectErrorStream(true);
 
-			//build.start()方法该方法会返回一个Process对象，
-			//该对象即代表正在运行的ffmpeg.exe这个程。
+			//build.start()方法该方法会返回一个Process对象,该对象即代表正在运行的ffmpeg.exe这个程。
 			//该对象有个waitFor()方法，该方法会阻塞当前线程，直至ffmpeg.exe运行结束。
 			Process p = builder.start();
 			//查看进程读取的数据信息
-			doWaitFor(p);
-			 /**
-             * 
-             * 等候进程运行结束
-             */
-            p.waitFor();
-			p.destroy();
+			printProcessInfo(p);
+			*//** 
+	        * 等候进程运行结束->p.waitFor()
+	        *//*
+			p.waitFor();
 			return true;
 		}catch(Exception e){
 			logger.error(e);
 		}
-		return false;
+		return false;*/
 	}
 	
 	/**
@@ -180,10 +178,9 @@ public class FFMpegUtil {
 	 * @param p
 	 * @return
 	 */
-	public static int doWaitFor(Process p) {
+	public static void printProcessInfo(Process p) {
         InputStream in = null;
         InputStream err = null;
-        int exitValue = -1; // returned to caller when p is finished
         try {
             System.out.println("coming......");
             in = p.getInputStream();
@@ -219,7 +216,6 @@ public class FFMpegUtil {
                     	logger.error(e);   
                     }
   
-                    exitValue = p.exitValue();
                     finished = true;
   
                 } catch (IllegalThreadStateException e) {
@@ -270,7 +266,7 @@ public class FFMpegUtil {
                 }
             }
         }
-        return exitValue;
+       
     }
 
     /** 
@@ -279,21 +275,42 @@ public class FFMpegUtil {
      * @param screenSize 截图大小 如640x480 
      */
 	public synchronized static void makeScreenCut(String originFileUri,String imageSavePath, String screenSize) {
-		List<String> commend = new ArrayList<String>();
-		commend.add(FFMPEG);
-		commend.add("-i");
-		commend.add(originFileUri);
-		commend.add("-y");
-		commend.add("-f");
-		commend.add("image2");
-		commend.add("-ss");
-		commend.add("2");
-		commend.add("-t");
-		commend.add("0.001");
-		commend.add("-s");
-		commend.add(screenSize);
-		commend.add(imageSavePath);
-		CmdExecuter.exec(commend, new FFMpegUtil(FFMPEG,originFileUri));
+		try {
+			List<String> commend = new ArrayList<String>();
+			commend.add(FFMPEG);
+			commend.add("-i");//获得文件信息
+			commend.add(originFileUri);
+			commend.add("-y");//覆盖已有的文件
+			commend.add("-f");//指定格式
+			commend.add("image2");
+			commend.add("-ss");//-ss后跟的时间单位为秒
+			commend.add("2");
+			commend.add("-vframes");//"-vframes 1"指定一帧
+			commend.add("1");
+			commend.add(screenSize);
+			commend.add(imageSavePath);
+			//CmdExecuter.exec(commend, new FFMpegUtil(FFMPEG,originFileUri));
+			
+			try {
+			ProcessBuilder builder = new ProcessBuilder();
+			builder.command(commend);
+			builder.redirectErrorStream(true);
+
+			//build.start()方法该方法会返回一个Process对象,该对象即代表正在运行的ffmpeg.exe这个程。
+			//该对象有个waitFor()方法，该方法会阻塞当前线程，直至ffmpeg.exe运行结束。
+			Process p = builder.start();
+			//查看进程读取的数据信息
+			printProcessInfo(p);
+			/** 
+	        * 等候进程运行结束->p.waitFor()
+	        */
+			p.waitFor();
+		}catch(Exception e){
+			logger.error(e);
+		}
+		} catch (Exception e) {
+			logger.error(e);
+		}
 	}
 
 	/*

@@ -19,7 +19,7 @@ public class CmdExecuter
       BufferedReader stdout = new BufferedReader(new InputStreamReader(proc
         .getInputStream()));
       String line;
-      while ((line = stdout.readLine()) != null) {
+      while ((line = stdout.readLine()) != null) {//进程字符串如 Duration: 00:00:05.64, start: 0.000000, bitrate: 490 kb/s
         if ((getter != null) && 
           (line.contains("Duration:")))
         {

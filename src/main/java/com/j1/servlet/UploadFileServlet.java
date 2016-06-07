@@ -122,23 +122,30 @@ import com.j1.util.StringUtil;
 	            		 result.append(READ_PATH + out_path.toString().replace(UPLOAD_BASE_PATH, ""));
 	            		 result.append(",");
 	            	 }else if(FFMpegUtil.checkContentTypeForVideo(path)){//视频格式转码, 还要截取一帧图片返回(目前，ios与安装客户端录制视频时上传都是MP4)
-	            		
 	            		 StringBuffer out_path = new StringBuffer();
-		            	 out_path.append(path.substring(0, path.lastIndexOf(".")));
-		            	 
-		            	 FFMpegUtil ffmpeg = new FFMpegUtil("ffmpeg", path);
-		            	 Integer time = Integer.valueOf(ffmpeg.getRuntime());
-		            	 out_path.append("_").append(time).append(URI_VIDEO_FORMAT);
-		            	 
-		            	 FFMpegUtil.processFLV(path, out_path.toString());
-	            		 
+	            		 String type = path.substring(path.lastIndexOf(".") + 1, path.length()) .toLowerCase();
+	            		 if(!type.equals("mp4")){//当不是MP4格式的视频时，才转换格式（转成mp4)
+	            			 
+			            	 out_path.append(path.substring(0, path.lastIndexOf(".")));
+			            	 FFMpegUtil ffmpeg = new FFMpegUtil("ffmpeg", path);
+			            	 Integer time = Integer.valueOf(ffmpeg.getRuntime());
+			            	 out_path.append("_").append(time).append(URI_VIDEO_FORMAT);
+			            	 
+			            	 FFMpegUtil.processFLV(path, out_path.toString());
+	            		 }else{
+	            			 out_path.append(path);
+	            		 }
 	            		 result.append(READ_PATH + out_path.toString().replace(UPLOAD_BASE_PATH, ""));
 	            		 
 	            		 result.append("|");//加“|”隔开视频web地址与视频截图web地址
+	            		 
+	            		 FFMpegUtil ffmpeg1 = new FFMpegUtil("ffmpeg", path);
 	            		 //截取视频的一帧图片（图片保存的位置与视频在同一目录）
 	            		 StringBuffer img_out_path = new StringBuffer();
 	            		 img_out_path.append(path.substring(0, path.lastIndexOf(".")));
-		            	 img_out_path.append("_").append(URI_VIDEO_PICTURE_SIZE).append(URI_VIDEO_PICTURE_FORMAT);
+	            		 //System.out.println("查看加载的文件信息："+ffmpeg1.getRuntime());
+	            		 
+		            	 img_out_path.append("_").append(ffmpeg1.getRuntime()).append("_").append(URI_VIDEO_PICTURE_SIZE).append(URI_VIDEO_PICTURE_FORMAT);
 		            	 FFMpegUtil.makeScreenCut(path, img_out_path.toString(), URI_VIDEO_PICTURE_SIZE);
 	            		 
 	            		 result.append(READ_PATH + img_out_path.toString().replace(UPLOAD_BASE_PATH, ""));
@@ -159,8 +166,7 @@ import com.j1.util.StringUtil;
        response.getWriter().write(resultStr);
  
      } catch (Exception e) {
-       e.printStackTrace();
-       logger.error(e.getMessage());
+       logger.error(e);
      }
    }
  
