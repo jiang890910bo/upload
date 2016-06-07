@@ -36,9 +36,9 @@ import com.j1.util.StringUtil;
     * 文件web路径
     * 线上访问地址
     */
-   public static final String READ_PATH = "http://soa.app.j1.com/upload/read";
+   //public static final String READ_PATH = "http://soa.app.j1.com/upload/read";
    //测试访问地址 
-   //public static final String READ_PATH = "http://192.168.2.191:8087/upload/read";
+   public static final String READ_PATH = "http://192.168.2.191:8087/upload/read";
    /**
     * 视频上传统一转码格式
     */
@@ -138,7 +138,7 @@ import com.j1.util.StringUtil;
 	            		 //截取视频的一帧图片（图片保存的位置与视频在同一目录）
 	            		 StringBuffer img_out_path = new StringBuffer();
 	            		 img_out_path.append(path.substring(0, path.lastIndexOf(".")));
-		            	 img_out_path.append("_").append(time).append(URI_VIDEO_PICTURE_FORMAT);
+		            	 img_out_path.append("_").append(URI_VIDEO_PICTURE_SIZE).append(URI_VIDEO_PICTURE_FORMAT);
 		            	 FFMpegUtil.makeScreenCut(path, img_out_path.toString(), URI_VIDEO_PICTURE_SIZE);
 	            		 
 	            		 result.append(READ_PATH + img_out_path.toString().replace(UPLOAD_BASE_PATH, ""));

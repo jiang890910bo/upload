@@ -1,7 +1,13 @@
 package com.j1.util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import com.j1.util.cmd.CmdExecuter;
 
@@ -12,6 +18,8 @@ import com.j1.util.cmd.CmdExecuter;
  *
  */
 public class FFMpegUtil {
+	static Logger logger = Logger.getLogger(FFMpegUtil.class);
+	
 	public static final String FFMPEG = "ffmpeg";
 	private Integer runtime;
 	private String ffmpegUri; // ffmpeg地址
@@ -140,17 +148,130 @@ public class FFMpegUtil {
 		commend.add("22050");
 
 		commend.add(out_path);
+		
+		
 		try {
-			ProcessBuilder builder = new ProcessBuilder(commend);
+			//预处理进程
+			ProcessBuilder builder = new ProcessBuilder();
 			builder.command(commend);
-			builder.start();
+			builder.redirectErrorStream(true);
 
+			//build.start()方法该方法会返回一个Process对象，
+			//该对象即代表正在运行的ffmpeg.exe这个程。
+			//该对象有个waitFor()方法，该方法会阻塞当前线程，直至ffmpeg.exe运行结束。
+			Process p = builder.start();
+			//查看进程读取的数据信息
+			doWaitFor(p);
+			 /**
+             * 
+             * 等候进程运行结束
+             */
+            p.waitFor();
+			p.destroy();
 			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch(Exception e){
+			logger.error(e);
 		}
 		return false;
 	}
+	
+	/**
+	 * 打印进程读取的数据
+	 * @param p
+	 * @return
+	 */
+	public static int doWaitFor(Process p) {
+        InputStream in = null;
+        InputStream err = null;
+        int exitValue = -1; // returned to caller when p is finished
+        try {
+            System.out.println("coming......");
+            in = p.getInputStream();
+            err = p.getErrorStream();
+            boolean finished = false; // Set to true when p is finished
+  
+            if (!finished) {
+            	InputStreamReader isr1 = null;
+            	BufferedReader br1 = null;
+            	InputStreamReader isr2 = null;
+            	BufferedReader br2 = null;
+            	
+                try {
+                	isr1 = new InputStreamReader(in);
+                	br1 = new BufferedReader(isr1); 
+                    try {
+                        String lineB = null;    
+                        while ((lineB = br1.readLine()) != null ){    
+                            if(lineB != null)System.out.println(lineB);    
+                        }    
+                    } catch (IOException e) {    
+                    	logger.error(e);
+                    }
+                    
+                    isr2 = new InputStreamReader(err);
+                    br2 = new BufferedReader(isr2);    
+                    try {    
+                        String lineC = null;    
+                        while ( (lineC = br2.readLine()) != null){    
+                            if(lineC != null)System.out.println(lineC);    
+                        }    
+                    } catch (IOException e) {    
+                    	logger.error(e);   
+                    }
+  
+                    exitValue = p.exitValue();
+                    finished = true;
+  
+                } catch (IllegalThreadStateException e) {
+                	logger.error(e);
+                }finally{
+                	try {
+						if(br1 !=null) br1.close();
+					} catch (Exception e) {
+						logger.error(e);
+					}
+                	
+                	try {
+						if(isr1 !=null) isr1.close();
+					} catch (Exception e) {
+						logger.error(e);
+					}
+                	
+                	try {
+						if(br2 !=null) br2.close();
+					} catch (Exception e) {
+						logger.error(e);
+					}
+                	
+                	try {
+						if(isr2 !=null) isr2.close();
+					} catch (Exception e) {
+						logger.error(e);
+					}
+                }
+            }
+        } catch (Exception e) {
+        	logger.error("doWaitFor();: unexpected exception - "
+                    + e.getMessage());
+        } finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+  
+            } catch (IOException e) {
+            	logger.error(e);
+            }
+            if (err != null) {
+                try {
+                    err.close();
+                } catch (IOException e) {
+                	logger.error(e);
+                }
+            }
+        }
+        return exitValue;
+    }
 
     /** 
      * 生成视频截图 
