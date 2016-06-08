@@ -1,6 +1,7 @@
 package com.j1.util.cmd;
 
 import com.j1.util.FFMpegUtil;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -31,10 +32,10 @@ public class CmdExecuter
 
           getter.setRuntime(count);
         }
-
+        
       }
 
-      proc.waitFor();
+      proc.waitFor();//等候进程结束
       stdout.close();
     } catch (Exception e) {
       e.printStackTrace();

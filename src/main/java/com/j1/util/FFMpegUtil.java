@@ -143,34 +143,31 @@ public class FFMpegUtil {
 		commend.add("-i");//获得源文件物理信息
 		commend.add(path);//源文件路径
 		commend.add("-ab");//<比特率> 设定声音比特率
-		commend.add("80");
+		commend.add("50");
 		commend.add("-ar");//<采样率> 设定声音采样率
 		commend.add("22050");
 
 		commend.add(out_path);
 		
-		CmdExecuter.exec(commend, new FFMpegUtil(FFMPEG,path));
+		//CmdExecuter.exec(commend, new FFMpegUtil(FFMPEG,path));
 		
-		/*try {
-			//预处理进程
+		try {
 			ProcessBuilder builder = new ProcessBuilder();
 			builder.command(commend);
 			builder.redirectErrorStream(true);
 
 			//build.start()方法该方法会返回一个Process对象,该对象即代表正在运行的ffmpeg.exe这个程。
-			//该对象有个waitFor()方法，该方法会阻塞当前线程，直至ffmpeg.exe运行结束。
+			//该对象有个waitFor()方法，该方法会阻塞当前线程，直至ffmpeg运行结束。
 			Process p = builder.start();
 			//查看进程读取的数据信息
 			printProcessInfo(p);
-			*//** 
-	        * 等候进程运行结束->p.waitFor()
-	        *//*
+			
+	 		//等候进程运行结束->p.waitFor()
 			p.waitFor();
-			return true;
 		}catch(Exception e){
 			logger.error(e);
 		}
-		return false;*/
+		
 	}
 	
 	/**
@@ -185,85 +182,78 @@ public class FFMpegUtil {
             System.out.println("coming......");
             in = p.getInputStream();
             err = p.getErrorStream();
-            boolean finished = false; // Set to true when p is finished
   
-            if (!finished) {
-            	InputStreamReader isr1 = null;
-            	BufferedReader br1 = null;
-            	InputStreamReader isr2 = null;
-            	BufferedReader br2 = null;
+        	InputStreamReader isr1 = null;
+        	BufferedReader br1 = null;
+        	InputStreamReader isr2 = null;
+        	BufferedReader br2 = null;
             	
+            try {
+            	isr1 = new InputStreamReader(in);
+            	br1 = new BufferedReader(isr1); 
                 try {
-                	isr1 = new InputStreamReader(in);
-                	br1 = new BufferedReader(isr1); 
-                    try {
-                        String lineB = null;    
-                        while ((lineB = br1.readLine()) != null ){    
-                            if(lineB != null)System.out.println(lineB);    
-                        }    
-                    } catch (IOException e) {    
-                    	logger.error(e);
-                    }
-                    
-                    isr2 = new InputStreamReader(err);
-                    br2 = new BufferedReader(isr2);    
-                    try {    
-                        String lineC = null;    
-                        while ( (lineC = br2.readLine()) != null){    
-                            if(lineC != null)System.out.println(lineC);    
-                        }    
-                    } catch (IOException e) {    
-                    	logger.error(e);   
-                    }
-  
-                    finished = true;
-  
-                } catch (IllegalThreadStateException e) {
+                    String lineB = null;    
+                    while ((lineB = br1.readLine()) != null ){    
+                        if(lineB != null)System.out.println(lineB);    
+                    }    
+                } catch (IOException e) {    
                 	logger.error(e);
-                }finally{
-                	try {
-						if(br1 !=null) br1.close();
-					} catch (Exception e) {
-						logger.error(e);
-					}
-                	
-                	try {
-						if(isr1 !=null) isr1.close();
-					} catch (Exception e) {
-						logger.error(e);
-					}
-                	
-                	try {
-						if(br2 !=null) br2.close();
-					} catch (Exception e) {
-						logger.error(e);
-					}
-                	
-                	try {
-						if(isr2 !=null) isr2.close();
-					} catch (Exception e) {
-						logger.error(e);
-					}
                 }
+                
+                isr2 = new InputStreamReader(err);
+                br2 = new BufferedReader(isr2);    
+                try {    
+                    String lineC = null;    
+                    while ( (lineC = br2.readLine()) != null){    
+                        if(lineC != null)System.out.println(lineC);    
+                    }    
+                } catch (IOException e) {    
+                	logger.error(e);   
+                }
+  
+            } catch (IllegalThreadStateException e) {
+            	logger.error(e);
+            }finally{
+            	try {
+					if(br1 !=null) br1.close();
+				} catch (Exception e) {
+					logger.error(e);
+				}
+            	
+            	try {
+					if(isr1 !=null) isr1.close();
+				} catch (Exception e) {
+					logger.error(e);
+				}
+            	
+            	try {
+					if(br2 !=null) br2.close();
+				} catch (Exception e) {
+					logger.error(e);
+				}
+            	
+            	try {
+					if(isr2 !=null) isr2.close();
+				} catch (Exception e) {
+					logger.error(e);
+				}
             }
         } catch (Exception e) {
-        	logger.error("doWaitFor();: unexpected exception - "
+        	logger.error("printProcessInfo() exception -"
                     + e.getMessage());
         } finally {
             try {
-                if (in != null) {
+                if (in != null) 
                     in.close();
-                }
-  
             } catch (IOException e) {
             	logger.error(e);
             }
-            if (err != null) {
-                try {
-                    err.close();
-                } catch (IOException e) {
-                	logger.error(e);
-                }
+            
+            try {
+            	if (err != null)
+            		err.close();
+            } catch (IOException e) {
+            	logger.error(e);
             }
         }
        
@@ -285,29 +275,35 @@ public class FFMpegUtil {
 			commend.add("image2");
 			commend.add("-ss");//-ss后跟的时间单位为秒
 			commend.add("2");
-			commend.add("-vframes");//"-vframes 1"指定一帧
-			commend.add("1");
+			//commend.add("-vframes");//"-vframes 1"指定一帧（使用该参数截图，对图片设置大小无效，按原尺寸截图，后面就不能跟-s(scale)参数）
+			//.add("1");
+			
+			commend.add("-t");//“-t 0.001”标示截取长度位0.001秒（linux上版本FFmpeg version 0.6.5, Copyright (c) 2000-2010需要注释该参数，否则视频截图为0字节，高版本正常）
+			commend.add("0.001");
+			
+			commend.add("-s");//表示尺寸scale的缩写，后面跟尺寸：高x宽
 			commend.add(screenSize);
 			commend.add(imageSavePath);
+			
 			//CmdExecuter.exec(commend, new FFMpegUtil(FFMPEG,originFileUri));
 			
 			try {
-			ProcessBuilder builder = new ProcessBuilder();
-			builder.command(commend);
-			builder.redirectErrorStream(true);
-
-			//build.start()方法该方法会返回一个Process对象,该对象即代表正在运行的ffmpeg.exe这个程。
-			//该对象有个waitFor()方法，该方法会阻塞当前线程，直至ffmpeg.exe运行结束。
-			Process p = builder.start();
-			//查看进程读取的数据信息
-			printProcessInfo(p);
-			/** 
-	        * 等候进程运行结束->p.waitFor()
-	        */
-			p.waitFor();
-		}catch(Exception e){
-			logger.error(e);
-		}
+					ProcessBuilder builder = new ProcessBuilder();
+					builder.command(commend);
+					builder.redirectErrorStream(true);
+		
+					//build.start()方法该方法会返回一个Process对象,该对象即代表正在运行的ffmpeg.exe这个程。
+					//该对象有个waitFor()方法，该方法会阻塞当前线程，直至ffmpeg.exe运行结束。
+					Process p = builder.start();
+					//查看进程读取的数据信息
+					printProcessInfo(p);
+					
+			 		//等候进程运行结束->p.waitFor()
+			        
+					p.waitFor();
+				}catch(Exception e){
+					logger.error(e);
+				}
 		} catch (Exception e) {
 			logger.error(e);
 		}
